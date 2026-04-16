@@ -89,8 +89,6 @@ class AgenteLogico:
         if not perc['brisa'] and not perc['hedor']:
             for nr, nc in adjacentes:
                 self.seguras.add((nr, nc))
-                self.kb[(nr, nc)]['p_pozo'] = 's'
-                self.kb[(nr, nc)]['p_wumpus'] = 's'
 
                 if (nr, nc) in self.peligros:
                     self.peligros.remove((nr, nc))
@@ -101,24 +99,18 @@ class AgenteLogico:
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
-                    self.kb[(nr, nc)]['p_pozo'] = 'p'
-                    self.kb[(nr, nc)]['p_wumpus'] = 's'
 
         if perc['hedor'] and not perc['brisa']:
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
                     self.posible_wumpus.add((nr, nc))
-                    self.kb[(nr, nc)]['p_wumpus'] = 'p'
-                    self.kb[(nr, nc)]['p_pozo'] = 's'
 
         if perc['brisa'] and perc ['hedor']:
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
                     self.posible_wumpus.add((nr, nc))
-                    self.kb[(nr, nc)]['p_pozo'] = 'p'
-                    self.kb[(nr, nc)]['p_wumpus'] = 'p'
 
         if self.wumpus_vivo and len(self.posible_wumpus) == 1:
             print(f"¡Wumpus identificado en {list(self.posible_wumpus)[0]}! Disparando flecha...")
@@ -127,9 +119,12 @@ class AgenteLogico:
                 print("¡Wumpus eliminado!")
                 self.wumpus_vivo = False
                 self.posible_wumpus.clear()
-                for nr, nc in mundo.get_adjacentes(*w_pos):
-                    self.kb[(nr, nc)]['p_wumpus'] = 's'
-                    self.seguras.add((nr, nc))
+                if not perc['brisa'] and not perc['hedor']:
+                    for nr, nc in mundo.get_adjacentes(*w_pos):
+                        self.seguras.add((nr, nc))
+                else:
+                    for nr, nc in mundo.get_adjacentes(*w_pos):
+                        self.peligros.add((nr, nc))
             else:
                 print("¡Fallo! El Wumpus sigue vivo.")
 
