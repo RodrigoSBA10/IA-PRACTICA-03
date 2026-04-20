@@ -4,6 +4,7 @@ import random
 class WumpusWorld:
     def __init__(self, size=6):
         self.size = size
+        # Cada celda es un diccionario con las propiedades del mundo
         self.grid = [[{'brisa': False, 'hedor': False, 'resplandor': False,
                        'pozo': False, 'wumpus': False, 'oro': False}
                       for _ in range(size)] for _ in range(size)]
@@ -73,40 +74,54 @@ class AgenteLogico:
         self.size = size
         self.pos_actual = (0, 0)
         self.visitados = set()
+        # El agente asume inicialmente que la posición (0,0) es segura al inicio
         self.seguras = set([(0, 0)])
+        # El agente asume inicialmente que el Wumpus está vivo y no sabe dónde está
         self.wumpus_vivo = True
+        # El agente asume inicialmente que no hay Wumpus en ninguna celda
         self.posible_wumpus = set()
+        # El agente asume inicialmente que no hay pozos en ninguna celda
         self.peligros = set()
+        # La KB del agente: para cada celda, mantiene la probabilidad de pozo y wumpus ('s' = seguro, 'p' = peligro, 'u' = desconocido)
         self.kb = {(r, c): {'p_pozo': 'u', 'p_wumpus': 'u'}
                    for r in range(size) for c in range(size)}
+        # El camino que el agente ha seguido para retroceder si es necesario
         self.camino = [[0,0]]
 
     def integrar_percepcion(self, r, c, perc):
+        # Marcar la celda actual como visitada y segura
         self.visitados.add((r, c))
         self.seguras.add((r, c))
+        # Actualizar la KB para la celda actual el conocimiento del agente
         self.kb[(r, c)]['p_pozo'] = 's'
         self.kb[(r, c)]['p_wumpus'] = 's'
+        # Obtener celdas adyacentes para inferencia
         adjacentes = mundo.get_adjacentes(r, c)
 
         # Lógica de inferencia
         if not perc['brisa'] and not perc['hedor']:
+            # Si no hay brisa ni hedor, todas las celdas adyacentes son seguras
             for nr, nc in adjacentes:
                 self.seguras.add((nr, nc))
+                # Actualizar la KB para las celdas adyacentes
                 self.kb[(nr, nc)]['p_pozo'] = 's'
                 self.kb[(nr, nc)]['p_wumpus'] = 's'
+                # Si alguna de estas celdas estaba marcada como peligro, corregirlo
                 if (nr, nc) in self.peligros:
                     self.peligros.remove((nr, nc))
                 if (nr, nc) in self.posible_wumpus:
                     self.posible_wumpus.remove((nr, nc))
-
+        # Si hay brisa, las celdas adyacentes podrían tener pozos
         if perc['brisa']:
+            # Marcar las celdas adyacentes como posibles pozos, pero solo si no han sido visitadas
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
                     if self.kb[(nr, nc)]['p_pozo'] != 's':
                         self.kb[(nr, nc)]['p_pozo'] = 'p'
-
+        # Si hay hedor, las celdas adyacentes podrían tener el Wumpus
         if perc['hedor']:
+            # Marcar las celdas adyacentes como posibles Wumpus, pero solo si no han sido visitadas
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
@@ -114,13 +129,17 @@ class AgenteLogico:
                     if self.kb[(nr, nc)]['p_wumpus'] != 's':
                         self.kb[(nr, nc)]['p_wumpus'] = 'p'
 
+        # Si el agente tiene suficiente información para identificar la ubicación del Wumpus, intenta disparar
         if self.wumpus_vivo and len(self.posible_wumpus) == 1:
             print(f"¡Wumpus identificado en {list(self.posible_wumpus)[0]}! Disparando flecha...")
+            # Intentar disparar al Wumpus
             w_pos = list(self.posible_wumpus)[0]
+            # Si el disparo es exitoso, actualizar el estado del agente y del mundo
             if mundo.disparar(*w_pos):
                 print("¡Wumpus eliminado!")
                 self.wumpus_vivo = False
                 self.posible_wumpus.clear()
+                # Actualizar la KB para las celdas adyacentes al Wumpus eliminado
                 if not perc['brisa'] and not perc['hedor']:
                     for nr, nc in mundo.get_adjacentes(*w_pos):
                         self.seguras.add((nr, nc))
@@ -134,6 +153,7 @@ class AgenteLogico:
             f"Percepciones en {r, c}: {'Brisa ' if perc['brisa'] else ''}{'Hedor ' if perc['hedor'] else ''}{'Resplandor' if perc['resplandor'] else ''}")
 
     def planificar_siguiente_paso(self):
+        # Priorizar celdas seguras no visitadas
         opciones = [p for p in self.seguras if p not in self.visitados]
         if opciones:
             # Intentar ir a una adyacente primero
@@ -141,8 +161,9 @@ class AgenteLogico:
                 if opt in mundo.get_adjacentes(*self.pos_actual):
                     return opt
             return opciones[0]
-
+        # Si no hay opciones seguras, intentar retroceder por el camino
         if len(self.camino) > 1:
+            print("Utilizando bractrcking")
             self.camino.pop()
             return self.camino[-1]
 
