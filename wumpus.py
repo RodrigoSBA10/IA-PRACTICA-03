@@ -77,40 +77,42 @@ class AgenteLogico:
         self.wumpus_vivo = True
         self.posible_wumpus = set()
         self.peligros = set()
-        self.kb = {(r, c): {'p_pozo': 'u', 'p_wumpus': 'u'} # 'u': desconocido, 's': seguro, 'p': peligroso
+        self.kb = {(r, c): {'p_pozo': 'u', 'p_wumpus': 'u'}
                    for r in range(size) for c in range(size)}
+        self.camino = [[0,0]]
 
     def integrar_percepcion(self, r, c, perc):
         self.visitados.add((r, c))
         self.seguras.add((r, c))
+        self.kb[(r, c)]['p_pozo'] = 's'
+        self.kb[(r, c)]['p_wumpus'] = 's'
         adjacentes = mundo.get_adjacentes(r, c)
 
         # Lógica de inferencia
         if not perc['brisa'] and not perc['hedor']:
             for nr, nc in adjacentes:
                 self.seguras.add((nr, nc))
-
+                self.kb[(nr, nc)]['p_pozo'] = 's'
+                self.kb[(nr, nc)]['p_wumpus'] = 's'
                 if (nr, nc) in self.peligros:
                     self.peligros.remove((nr, nc))
                 if (nr, nc) in self.posible_wumpus:
                     self.posible_wumpus.remove((nr, nc))
 
-        if perc['brisa'] and not perc['hedor']:
+        if perc['brisa']:
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
+                    if self.kb[(nr, nc)]['p_pozo'] != 's':
+                        self.kb[(nr, nc)]['p_pozo'] = 'p'
 
-        if perc['hedor'] and not perc['brisa']:
+        if perc['hedor']:
             for nr, nc in adjacentes:
                 if (nr, nc) not in self.visitados:
                     self.peligros.add((nr, nc))
                     self.posible_wumpus.add((nr, nc))
-
-        if perc['brisa'] and perc ['hedor']:
-            for nr, nc in adjacentes:
-                if (nr, nc) not in self.visitados:
-                    self.peligros.add((nr, nc))
-                    self.posible_wumpus.add((nr, nc))
+                    if self.kb[(nr, nc)]['p_wumpus'] != 's':
+                        self.kb[(nr, nc)]['p_wumpus'] = 'p'
 
         if self.wumpus_vivo and len(self.posible_wumpus) == 1:
             print(f"¡Wumpus identificado en {list(self.posible_wumpus)[0]}! Disparando flecha...")
@@ -139,8 +141,35 @@ class AgenteLogico:
                 if opt in mundo.get_adjacentes(*self.pos_actual):
                     return opt
             return opciones[0]
+
+        if len(self.camino) > 1:
+            self.camino.pop()
+            return self.camino[-1]
+
         return None
 
+    def mostrar_mundo_agente(self):
+        print("\n=== CONOCIMIENTO DEL AGENTE ===\n")
+
+        for r in reversed(range(self.size)):
+            for c in range(self.size):
+
+                if (r, c) == self.pos_actual:
+                    print(" A ", end="")
+
+                elif self.kb[(r, c)]['p_pozo'] == 'p':
+                    print(" P ", end="")
+
+                elif self.kb[(r, c)]['p_wumpus'] == 'p':
+                    print(" W ", end="")
+
+                elif (r, c) in self.seguras:
+                    print(" S ", end="")
+
+                else:
+                    print(" ? ", end="")
+
+            print()
 
 # --- Simulación Principal ---
 mundo = WumpusWorld()
@@ -154,6 +183,8 @@ for turno in range(1, 30):
     percepcion = mundo.obtener_percepcion(r, c)
 
     agente.integrar_percepcion(r, c, percepcion)
+
+    agente.mostrar_mundo_agente()
 
     if percepcion['oro']:
         print("¡VICTORIA! El agente ha encontrado el Oro.")
