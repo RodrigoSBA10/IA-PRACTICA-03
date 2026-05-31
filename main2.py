@@ -1,12 +1,10 @@
 from mundo import WumpusWorld
-from agente import AgenteLogico
 from AgenteAleatorio import AgenteAleatorio
 from config import TURNOS_MAXIMOS
 
 
 mundo = WumpusWorld()
-agente = AgenteLogico(mundo)
-agente_aleatorio = AgenteAleatorio(mundo)
+agente = AgenteAleatorio(mundo)
 
 
 for turno in range(1, TURNOS_MAXIMOS + 1):
@@ -14,32 +12,13 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
 
     if turno % 3 == 0:
         mundo.mover_wumpus()
-        agente.posible_wumpus.clear()
-        agente.peligros.clear()
-        agente.seguras = set(agente.visitados)
-
-        for pos in agente.kb:
-            if agente.kb[pos]['p_wumpus'] == 'p':
-                agente.kb[pos]['p_wumpus'] = 'u'
-
         print("Los Wumpus se han movido...")
 
     if turno % 4 == 0:
         nuevo_pozo = mundo.agregar_pozo_aleatorio()
 
         if nuevo_pozo:
-            agente.peligros.clear()
-
-            agente.seguras.discard(nuevo_pozo)
-            agente.peligros.add(nuevo_pozo)
-
-            agente.kb[nuevo_pozo]['p_pozo'] = 'p'
-
-            for pos in agente.kb:
-                if agente.kb[pos]['p_pozo'] == 'p' and pos != nuevo_pozo:
-                    agente.kb[pos]['p_pozo'] = 'u'
-
-            print(f"Ha aparecido un nuevo pozo en {nuevo_pozo}")
+           print(f"Ha aparecido un nuevo pozo en {nuevo_pozo}")
 
     mundo.imprimir_tablero(agente.pos_actual)
 
@@ -47,14 +26,17 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
     percepcion = mundo.obtener_percepcion(r, c)
 
     agente.integrar_percepcion(r, c, percepcion)
-    agente.mostrar_mundo_agente()
+    agente.mostrar_mundo()
 
     if percepcion['oro']:
         print("¡VICTORIA! El agente ha encontrado el Oro.")
         break
-
-    proxima = agente.planificar_siguiente_paso()
-
+    if percepcion['pozo']:
+        print("Perdiste caiste en la pozo")
+        break
+        
+    #Mocimientos aleatorio 
+    proxima = agente.planificar_movimiento()
     if proxima:
         agente.pos_actual = proxima
         agente.camino.append(list(proxima))
