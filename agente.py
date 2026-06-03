@@ -1,6 +1,8 @@
 # Importa la cantidad de Wumpus definida en config.py
 from config import CANTIDAD_WUMPUS, TAMANIO_MUNDO
 
+from puntuaciones import *
+
 
 # Clase que representa al agente lógico
 class AgenteLogico:
@@ -130,11 +132,15 @@ class AgenteLogico:
             # Muestra mensaje de disparo
             print(f"¡Wumpus identificado en {w_pos}! Disparando flecha...")
 
+            self.puntuacion += PUNTOS_DISPARO
+
             # Intenta disparar en esa posición
             if self.mundo.disparar(*w_pos):
 
                 # Si acertó, muestra mensaje
                 print("¡Wumpus eliminado!")
+
+                self.puntuacion += PUNTOS_MATAR_WUMPUS
 
                 # Reduce la cantidad de Wumpus restantes
                 self.wumpus_restantes -= 1

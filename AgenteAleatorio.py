@@ -4,6 +4,8 @@ import random
 # Importa las constantes del archivo config.py
 from config import *
 
+from puntuaciones import *
+
 
 # Clase del agente que se mueve de forma aleatoria
 class AgenteAleatorio:
@@ -70,8 +72,11 @@ class AgenteAleatorio:
             # Muestra la posición a la que va a disparar
             print(f"Posible Wumpus en {w_pos}. Disparando flecha...")
 
+            self.puntuacion += PUNTOS_DISPARO
             # Intenta disparar en esa posición
             if self.mundo.disparar(*w_pos):
+
+                self.puntuacion += PUNTOS_MATAR_WUMPUS
 
                 # Resta una flecha
                 self.flechas -= 1
