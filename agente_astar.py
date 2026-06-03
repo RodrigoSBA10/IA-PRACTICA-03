@@ -246,3 +246,29 @@ class AgenteAStar:
 
             # Salto de línea al terminar la fila
             print()
+    
+    def mostrar_mundo_matriz(self):
+        matriz = []
+
+        for r in reversed(range(self.size)):
+            fila = []
+
+            for c in range(self.size):
+
+                pos = (r, c)
+
+                if pos == self.pos_actual:
+                    fila.append("A")
+
+                elif pos in self.peligros:
+                    fila.append("P")
+
+                elif pos in self.seguras:
+                    fila.append("S")
+
+                else:
+                    fila.append("?")
+
+            matriz.append(fila)
+
+        return matriz
