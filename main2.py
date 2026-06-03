@@ -26,7 +26,7 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
     percepcion = mundo.obtener_percepcion(r, c)
 
     agente.integrar_percepcion(r, c, percepcion)
-    agente.mostrar_mundo()
+    agente.mostrar_mundo_agente()
 
     if percepcion['oro']:
         print("¡VICTORIA! El agente ha encontrado el Oro.")
@@ -36,7 +36,7 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
         break
         
     #Mocimientos aleatorio 
-    proxima = agente.planificar_movimiento()
+    proxima = agente.planificar_siguiente_paso()
     if proxima:
         agente.pos_actual = proxima
         agente.camino.append(list(proxima))
