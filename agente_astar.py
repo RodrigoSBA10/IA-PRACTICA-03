@@ -244,7 +244,7 @@ class AgenteAStar:
                 else:
                     print(" ? ", end="")
 
-            # Salto de línea al terminar la fila
+            # Salto de línea al terminar la filacle
             print()
     
     def mostrar_mundo_matriz(self):

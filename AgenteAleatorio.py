@@ -31,7 +31,7 @@ class AgenteAleatorio:
 
         # Cantidad de Wumpus restantes
         self.wumpus_restantes = CANTIDAD_WUMPUS
-
+        
         # Cantidad de flechas disponibles
         self.flechas = CANTIDAD_WUMPUS
 

@@ -27,7 +27,10 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
 
     agente.integrar_percepcion(r, c, percepcion)
     agente.mostrar_mundo_agente()
-
+    
+    if percepcion["wumpus"]:
+        print("El agente fue devorado por el Wumpus.")
+        break
     if percepcion['oro']:
         print("¡VICTORIA! El agente ha encontrado el Oro.")
         break

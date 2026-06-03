@@ -5,6 +5,7 @@ from AgenteAleatorio import AgenteAleatorio
 from agente import AgenteLogico
 from agente_astar import AgenteAStar
 from config import *
+from puntuaciones import *
 
 #Mundo para los 3 agentes
 mundo = WumpusWorld()
@@ -80,15 +81,18 @@ GRID_SIZE = TAMANIO_MUNDO
 CELL_SIZE = 30
 
 #control del juego
-turno_actual = 0
+turno_actual = 1
 #Cuando el juego termina, ya sea por victoria o derrota, se detiene el ciclo principal y se muestra el mensaje correspondiente
 juego_terminado = False
 #Si el jugador gana
 victoria = False
-
+# Si no hay caminos con el agente aleatorio y 
+sin_caminos = False
+#Muerte por el wumpus
+agente_deborado = False
 
 #Tiempo en lo que se va a mover
-DELAY_MOVIMIENTO = 2000  # 2 segundos entre movimientos
+DELAY_MOVIMIENTO = 1000  # 2 segundos entre movimientos
 ultimo_movimiento = pygame.time.get_ticks()  # Tiempo del último movimiento
 
 #Dibujar celdas del tablero 
@@ -172,14 +176,16 @@ def draw_interface(rect_agente, mundo_real, conocimiento_agente):
     draw_grid_cells(left_grid_x, grid_y, mundo_real)
     draw_grid_cells(right_grid_x, grid_y, conocimiento_agente)
 
-"""
+
+
 #Actualizar el mundo y el conocimiento del agente aleatorio en cada turno
-def actualizar_mundo_y_conocimiento():
+def actualizar_mundo_y_conocimiento_aleatorio():
     global turno_actual
     global juego_terminado
     global mundo_real
     global conocimiento_agente
     global victoria
+    global agente_deborado
 
     if juego_terminado:
         return
@@ -188,47 +194,58 @@ def actualizar_mundo_y_conocimiento():
         return
 
     print(f"\n*** MOVIMIENTO {turno_actual} ***")
-
-    if turno_actual % 3 == 0:
+    turno_actual +=1
+    # Resta puntos por cada movimiento realizado
+    agente.puntuacion += PUNTOS_MOVIMIENTO
+    if turno_actual % FRECUENCIA_MOVIMIENTO_WUMPUS == 0:
         #Mover wumpus del mundo
-        mundo.mover_wumpus()
-        # Si otro agente usa posibles posiciones de Wumpus, también las limpia
-        if hasattr(agente, "posibles_wumpus"):
-            agente.posibles_wumpus.clear()
-
-        # Si el agente tiene base de conocimiento
-        if hasattr(agente, "kb"):
-
-            # Recorre todas las posiciones de la base de conocimiento
-            for pos in agente.kb:
-
-                # Si alguna posición estaba marcada como posible Wumpus
-                if agente.kb[pos]["p_wumpus"] == "p":
-
-                    # La regresa a desconocida porque el Wumpus se movió
-                    agente.kb[pos]["p_wumpus"] = "u"
-        
+        mundo.mover_wumpus()        
         print("Los Wumpus se han movido...")
 
-    if turno_actual % 4 == 0:
-
+    if turno_actual % FRECUENCIA_NUEVO_POZO == 0:
+        # Agrega un pozo aleatorio, evitando la posición actual del agente
         nuevo_pozo = (mundo.agregar_pozo_aleatorio())
         if nuevo_pozo:
             print(f"Nuevo pozo en {nuevo_pozo}")
+    
     r, c = agente.pos_actual
 
-    percepcion = (mundo.obtener_percepcion(r,c))
-
+    percepcion = mundo.obtener_percepcion(r,c)
     agente.integrar_percepcion(r,c,percepcion)
+    #Acrutalizar el mundo real y el conocimiento del agente
+    mundo_real = (mundo.obtener_matriz_visual(pos_agente=(r, c)))
+    conocimiento_agente = (agente.convertir_mundo_agente_a_matriz())
+    agente.mostrar_mundo_agente()
+    #Verificar cuando el wumpus este muerto
+    
+    if agente.wumpus_restantes == 1:
+        agente.puntuacion += PUNTOS_MATAR_WUMPUS
+        print("Wumpus muerto, queda 1")
+      
+
+    if agente.wumpus_restantes == 0:
+        agente.puntuacion += PUNTOS_MATAR_WUMPUS
+        print("Wumpus eliminados")
+            
+
+    if percepcion["wumpus"]:
+        agente.puntuacion += PUNTOS_MORIR
+        print("El agente fue devorado por el Wumpus")
+        agente_deborado = True
+        juego_terminado = True
+        return
+
     if percepcion["oro"]:
         print("¡VICTORIA!")
+        agente.puntuacion += PUNTOS_ORO
         juego_terminado = True
         victoria = True
         return
     if percepcion["pozo"]:
         print("El agente cayó en un pozo")
+        # Aplica penalización por caer en un pozo
+        agente.puntuacion += PUNTOS_CAER_POZO
         juego_terminado = True
-        victoria = False
         return
     proxima = (agente.planificar_siguiente_paso())
 
@@ -240,26 +257,14 @@ def actualizar_mundo_y_conocimiento():
         juego_terminado = True
         return
 
-    r, c = agente.pos_actual
-    r_a, r_c = agente_astar.pos_actual
-    #Acrutalizar el mundo real y el conocimiento del agente
-    mundo_real = (mundo.obtener_matriz_visual(pos_agente=(r, c)))
-    conocimiento_agente = (agente.convertir_mundo_agente_a_matriz())
-    agente.mostrar_mundo_agente()
-
-    #Actualiza el mundo de astar
-    mundo_real_astar= (mundo.obtener_matriz_visual(pos_agente=(r_a, r_c)))
-    #Aumentar el turno actual
-    turno_actual += 1
-
-"""
-
 def actualizar_mundo_y_conocimiento():
     global turno_actual
     global juego_terminado
     global victoria
     global mundo_real_astar
     global conocimiento_agente_astar
+    global sin_caminos
+    global agente_deborado
 
     if juego_terminado:
         return
@@ -333,13 +338,9 @@ def actualizar_mundo_y_conocimiento():
         victoria = False
 
     elif percepcion["wumpus"]:
-
         agente_astar.puntuacion += PUNTOS_MORIR
-
         print("El agente fue devorado por el Wumpus")
-
-        juego_terminado = True
-        victoria = False
+        agente_deborado = True
 
     elif percepcion["oro"]:
 
@@ -366,7 +367,8 @@ def actualizar_mundo_y_conocimiento():
 
             print("No hay movimientos posibles")
 
-            juego_terminado = True
+            #juego_terminado = True
+            sin_caminos = True
             victoria = False
 
     # Actualizar tablero visual
@@ -377,13 +379,12 @@ def actualizar_mundo_y_conocimiento():
     )
 
     conocimiento_agente_astar = (
-        agente_astar.convertir_mundo_agente_a_matriz()
+        agente_astar.mostrar_mundo_matriz()
     )
 
     # Siguiente turno
     turno_actual += 1
     agente_astar.mostrar_mundo_agente()
-
 
 #Mostrar el mensaje de victoria o juego perdido 
 def menssage(cadena, color_rojo):
@@ -398,11 +399,19 @@ def menssage(cadena, color_rojo):
     screen.blit(texto, rect)
 
 
+#Actualizar el mundo en en el agente logico
+def mostrar_puntuacion(puntuacion):
+    fuente_puntuacion = pygame.font.SysFont("Arial", 40)
+    texto = fuente_puntuacion.render(f"Puntuación: {puntuacion}", True, COLOR_TEXT)
+    rect = texto.get_rect(center=(WIDTH//2, HEIGHT//2 + 80))
+    screen.blit(texto, rect)
+
 
 def main():
     global ultimo_movimiento
     global juego_terminado
     global victoria
+    global agente_deborado
 
     # Tamaño y posición del rectángulo para el agente aleatorio
     rect_agente_aleatorio = pygame.Rect(40, 40, 500, 300)
@@ -428,7 +437,7 @@ def main():
         tiempo_actual = pygame.time.get_ticks()
 
         if tiempo_actual - ultimo_movimiento >= DELAY_MOVIMIENTO:
-            actualizar_mundo_y_conocimiento()
+            actualizar_mundo_y_conocimiento_aleatorio()
             ultimo_movimiento = tiempo_actual
         # Dibujar las 3 interfaces de los agentes
         draw_interface(rect_agente=rect_agente_aleatorio, mundo_real=mundo_real, conocimiento_agente=conocimiento_agente)
@@ -437,9 +446,19 @@ def main():
         
         if juego_terminado and victoria == False:
             menssage("¡GAME OVER!", color_rojo)
-        if victoria:
-            menssage("¡WINNER!", color_verde)  
+            mostrar_puntuacion(agente.puntuacion)
+    
+        elif victoria:
+            menssage("¡WINNER!", color_verde) 
+            mostrar_puntuacion(agente.puntuacion)
+
+        elif sin_caminos:
+            menssage("¡SIN CAMINOS!", color_rojo)
+            mostrar_puntuacion(agente_astar.puntuacion) 
         
+        elif agente_deborado and juego_terminado == True:
+            menssage("WUMPUS ELIMINO AL AGENTE", color_rojo)
+
         pygame.display.flip()
         
         clock.tick(60)
