@@ -243,3 +243,23 @@ class AgenteLogico:
 
             # Salto de línea al terminar cada fila
             print()
+    
+
+    #Metodo para el juego convertir el mundo del agente a una matriz visual para mostrar en la interfaz gráfica
+    def convertir_mundo_agente_a_matriz(self):
+        matriz = []
+        for r in reversed(range(self.size)):
+            fila = []
+            for c in range(self.size):
+                if (r, c) == self.pos_actual:
+                    fila.append("A")
+                elif self.kb[(r, c)]['p_pozo'] == 'p':
+                    fila.append("P")
+                elif self.kb[(r, c)]['p_wumpus'] == 'p':
+                    fila.append("W")
+                elif (r, c) in self.seguras:
+                    fila.append("S")
+                else:
+                    fila.append("?")
+            matriz.append(fila)
+        return matriz

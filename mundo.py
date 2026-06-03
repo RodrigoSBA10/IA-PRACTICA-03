@@ -306,3 +306,22 @@ class WumpusWorld:
 
         # Si no hay posiciones válidas, no agrega nada
         return None
+
+    def obtener_matriz_visual(self, pos_agente=None):
+        matriz = []
+        for r in reversed(range(self.size)):
+            fila = []
+            for c in range(self.size):
+                char = ""
+                if (r, c) == pos_agente:
+                    char += "A"
+                if self.grid[r][c]['wumpus']:
+                    char += "W"
+                if self.grid[r][c]['pozo']:
+                    char += "P"
+                if self.grid[r][c]['oro']:
+                    char += "O"
+                fila.append(char)
+            matriz.append(fila)
+        return matriz
+    
