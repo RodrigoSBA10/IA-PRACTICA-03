@@ -160,7 +160,8 @@ class AgenteAleatorio:
             print()
         
         #Convertir el mundo del agente a una matriz visual para mostrar en la interfaz gráfica
-    def convertir_mundo_agente_a_matriz(self):
+        #convertir_mundo_agente_a_matriz
+    def mostrar_mundo_matriz(self):
             matriz = []
             for r in reversed(range(self.size)):
                 fila = []

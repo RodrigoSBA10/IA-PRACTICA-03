@@ -3,6 +3,7 @@ import heapq
 
 # Importa las constantes del archivo config.py
 from config import *
+from puntuaciones import *
 
 
 # Clase del agente basado en el algoritmo A*
@@ -37,6 +38,14 @@ class AgenteAStar:
 
         # Puntuación del agente
         self.puntuacion = 0
+
+        #Extra para matar el wumpus
+        # Cantidad de Wumpus que quedan vivos
+        self.wumpus_restantes = CANTIDAD_WUMPUS
+
+        # Posibles posiciones donde puede estar un Wumpus
+        self.posible_wumpus = set() 
+        #*********
 
     # Método para integrar la percepción de la casilla actual
     def integrar_percepcion(self, r, c, perc):
@@ -77,7 +86,51 @@ class AgenteAStar:
 
                     # Agrega la casilla como peligrosa
                     self.peligros.add((nr, nc))
+        ### Agregar operacion matar wumpus
+        if perc['hedor']:
+                # Recorre las casillas adyacentes
+            for nr, nc in adyacentes:
 
+                # Solo considera casillas no visitadas
+                if (nr, nc) not in self.visitados:
+
+                    # Agrega la casilla como peligrosa
+                    self.peligros.add((nr, nc))
+
+                    # La agrega como posible posición de Wumpus
+                    self.posible_wumpus.add((nr, nc))
+        # Si queda al menos un Wumpus y solo hay una posible posición, intenta disparar
+        if self.wumpus_restantes > 0 and len(self.posible_wumpus) == 1:
+
+            # Obtiene la única posición posible del Wumpus
+            w_pos = list(self.posible_wumpus)[0]
+
+            # Muestra mensaje de disparo
+            print(f"¡Wumpus identificado en {w_pos}! Disparando flecha...")
+
+            self.puntuacion += PUNTOS_DISPARO
+
+            # Intenta disparar en esa posición
+            if self.mundo.disparar(*w_pos):
+
+                # Si acertó, muestra mensaje
+                print("¡Wumpus eliminado!")
+
+                self.puntuacion += PUNTOS_MATAR_WUMPUS
+
+                # Reduce la cantidad de Wumpus restantes
+                self.wumpus_restantes -= 1
+
+                # Limpia las posiciones posibles de Wumpus
+                self.posible_wumpus.clear()
+
+                # Marca como seguras las casillas alrededor del Wumpus eliminado
+                for nr, nc in self.mundo.get_adjacentes(*w_pos):
+                    self.seguras.add((nr, nc))
+
+            else:
+                # Si falló, muestra mensaje
+                print("¡Fallo! El Wumpus sigue vivo.")
         # Muestra las percepciones recibidas
         print(
             f"Percepciones en {(r, c)}: "

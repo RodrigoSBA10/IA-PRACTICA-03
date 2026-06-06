@@ -23,13 +23,13 @@ mundo = WumpusWorld()
 # Selecciona el agente a probar
 
 # Agente basado en lógica e inferencia
-# agente = AgenteLogico(mundo)
+agente = AgenteLogico(mundo)
 
 # Agente que se mueve aleatoriamente
 # agente = AgenteAleatorio(mundo)
 
 # Agente que utiliza A*
-agente = AgenteAStar(mundo)
+#agente = AgenteAStar(mundo)
 
 
 # Ciclo principal de la simulación

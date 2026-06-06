@@ -62,7 +62,8 @@ class WumpusWorld:
         for _ in range(cantidad_wumpus):
 
             # Selecciona una posición aleatoria disponible
-            w_pos = random.choice(posiciones_disponibles)
+            #w_pos = random.choice(posiciones_disponibles)
+            w_pos = random.choice([pos for pos in posiciones_disponibles if not self.grid[pos[0]][pos[1]]['pozo']])
 
             # Elimina esa posición para que no se repita otro Wumpus ahí
             posiciones_disponibles.remove(w_pos)

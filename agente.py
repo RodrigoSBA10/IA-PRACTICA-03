@@ -246,7 +246,7 @@ class AgenteLogico:
     
 
     #Metodo para el juego convertir el mundo del agente a una matriz visual para mostrar en la interfaz gráfica
-    def convertir_mundo_agente_a_matriz(self):
+    def mostrar_mundo_matriz(self):
         matriz = []
         for r in reversed(range(self.size)):
             fila = []
