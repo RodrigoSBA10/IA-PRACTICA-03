@@ -34,7 +34,7 @@ CELL_SIZE = 30
 DELAY_MOVIMIENTO = 1000  # 1 segundos entre movimientos
 
 #Configuracion del juego 
-TURNO_ACTUAL = 1
+TURNO_ACTUAL = 0
 JUEGO_TERMINADO = False
 VICTORIA = False
 SIN_CAMINOS = False

@@ -1,5 +1,6 @@
 import pygame
 import sys
+import copy
 from mundo import WumpusWorld
 from AgenteAleatorio import AgenteAleatorio
 from agente import AgenteLogico
@@ -157,9 +158,6 @@ def actualizar_agente(agente_actual, mundo_real_ref, conocimiento_ref):
         #Mover wumpus
         mundo.mover_wumpus()
         #Manejo de dos agentes
-        # Si el agente lógico tiene posibles posiciones de Wumpus, las limpia
-        if hasattr(agente_actual, "posible_wumpus"):
-            agente_actual.posible_wumpus.clear()
         # Si otro agente usa posibles posiciones de Wumpus, también las limpia
         if hasattr(agente_actual, "posibles_wumpus"):
             agente_actual.posibles_wumpus.clear()

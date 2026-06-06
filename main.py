@@ -49,7 +49,7 @@ for turno in range(1, TURNOS_MAXIMOS + 1):
 
         # Si el agente lógico tiene posibles posiciones de Wumpus, las limpia
         if hasattr(agente, "posible_wumpus"):
-            agente.posible_wumpus.clear()
+            agente.posibles_wumpus.clear()
 
         # Si otro agente usa posibles posiciones de Wumpus, también las limpia
         if hasattr(agente, "posibles_wumpus"):

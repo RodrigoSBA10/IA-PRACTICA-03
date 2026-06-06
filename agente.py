@@ -29,7 +29,7 @@ class AgenteLogico:
         self.wumpus_restantes = CANTIDAD_WUMPUS
 
         # Posibles posiciones donde puede estar un Wumpus
-        self.posible_wumpus = set()
+        self.posibles_wumpus = set()
 
         # Casillas que el agente considera peligrosas
         self.peligros = set()
@@ -86,7 +86,27 @@ class AgenteLogico:
                 self.peligros.discard((nr, nc))
 
                 # Si estaba marcada como posible Wumpus, la elimina
-                self.posible_wumpus.discard((nr, nc))
+                self.posibles_wumpus.discard((nr, nc))
+
+
+        # Si hay hedor, entonces puede haber un Wumpus en alguna casilla adyacente
+        if perc['hedor']:
+
+            # Recorre las casillas adyacentes
+            for nr, nc in adjacentes:
+
+                # Solo considera casillas no visitadas
+                if (nr, nc) not in self.visitados:
+
+                    # Agrega la casilla como peligrosa
+                    self.peligros.add((nr, nc))
+
+                    # La agrega como posible posición de Wumpus
+                    self.posibles_wumpus.add((nr, nc))
+
+                    # Si no estaba marcada como segura, la marca como posible Wumpus
+                    if self.kb[(nr, nc)]['p_wumpus'] != 's':
+                        self.kb[(nr, nc)]['p_wumpus'] = 'p'
 
         # Si hay brisa, entonces puede haber un pozo en alguna casilla adyacente
         if perc['brisa']:
@@ -104,30 +124,12 @@ class AgenteLogico:
                     if self.kb[(nr, nc)]['p_pozo'] != 's':
                         self.kb[(nr, nc)]['p_pozo'] = 'p'
 
-        # Si hay hedor, entonces puede haber un Wumpus en alguna casilla adyacente
-        if perc['hedor']:
-
-            # Recorre las casillas adyacentes
-            for nr, nc in adjacentes:
-
-                # Solo considera casillas no visitadas
-                if (nr, nc) not in self.visitados:
-
-                    # Agrega la casilla como peligrosa
-                    self.peligros.add((nr, nc))
-
-                    # La agrega como posible posición de Wumpus
-                    self.posible_wumpus.add((nr, nc))
-
-                    # Si no estaba marcada como segura, la marca como posible Wumpus
-                    if self.kb[(nr, nc)]['p_wumpus'] != 's':
-                        self.kb[(nr, nc)]['p_wumpus'] = 'p'
 
         # Si queda al menos un Wumpus y solo hay una posible posición, intenta disparar
-        if self.wumpus_restantes > 0 and len(self.posible_wumpus) == 1:
+        if self.wumpus_restantes > 0 and len(self.posibles_wumpus) == 1:
 
             # Obtiene la única posición posible del Wumpus
-            w_pos = list(self.posible_wumpus)[0]
+            w_pos = list(self.posibles_wumpus)[0]
 
             # Muestra mensaje de disparo
             print(f"¡Wumpus identificado en {w_pos}! Disparando flecha...")
@@ -146,7 +148,7 @@ class AgenteLogico:
                 self.wumpus_restantes -= 1
 
                 # Limpia las posiciones posibles de Wumpus
-                self.posible_wumpus.clear()
+                self.posibles_wumpus.clear()
 
                 # Marca como seguras las casillas alrededor del Wumpus eliminado
                 for nr, nc in self.mundo.get_adjacentes(*w_pos):
@@ -201,11 +203,14 @@ class AgenteLogico:
 
         # Si no hay opciones nuevas, usa backtracking
         if len(self.camino) > 1:
-            print("Utilizando backtracking")
+            pos_actual = tuple(self.camino[-1])
+            pos_anterior = tuple(self.camino[-2])
+            print(f"Utilizando backtracking: {pos_actual} -> {pos_anterior}")
 
+            print(self)
             self.camino.pop()
 
-            return tuple(self.camino[-1])
+            return pos_anterior
 
         return None
 
@@ -234,6 +239,8 @@ class AgenteLogico:
                     print(" W ", end="")
 
                 # Si el agente considera la casilla segura
+                elif self.kb[(r, c)]['p_wumpus'] == 'p' and self.kb[(r, c)]['p_pozo'] == 'p':
+                    print(" w/p ", end="")
                 elif (r, c) in self.seguras:
                     print(" S ", end="")
 
@@ -257,9 +264,21 @@ class AgenteLogico:
                     fila.append("P")
                 elif self.kb[(r, c)]['p_wumpus'] == 'p':
                     fila.append("W")
+                elif (r, c) in self.visitados:
+                    fila.append("V")
                 elif (r, c) in self.seguras:
                     fila.append("S")
                 else:
                     fila.append("?")
             matriz.append(fila)
         return matriz
+
+    def reinciar_conocimiento(self):
+        self.kb = {
+            (r, c): {
+                'p_pozo': 'u',
+                'p_wumpus': 'u'
+            }
+            for r in range(self.size)
+            for c in range(self.size)
+        }
