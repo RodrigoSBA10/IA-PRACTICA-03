@@ -1,3 +1,4 @@
+# Configuración de las puntuaciones para el juego de Wumpus
 PUNTOS_ORO = 1000
 PUNTOS_MORIR = -1000
 PUNTOS_MOVIMIENTO = -1

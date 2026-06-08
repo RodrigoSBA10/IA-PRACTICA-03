@@ -2,9 +2,9 @@
 import random
 
 # Importa las constantes del archivo config.py
-from config import *
+from configuracion.config import *
 
-from puntuaciones import *
+from configuracion.puntuaciones import *
 
 
 # Clase del agente que se mueve de forma aleatoria
@@ -100,14 +100,6 @@ class AgenteAleatorio:
 
                 # Quita esa posición porque ya se comprobó que no estaba ahí
                 self.posibles_wumpus.discard(w_pos)
-
-        # Muestra las percepciones recibidas por el agente
-        print(
-            f"Percepciones en {(r, c)}: "
-            f"{'Brisa ' if perc['brisa'] else ''}"
-            f"{'Hedor ' if perc['hedor'] else ''}"
-            f"{'Resplandor' if perc['resplandor'] else ''}"
-        )
 
     # Método para decidir el siguiente movimiento
     def planificar_siguiente_paso(self):

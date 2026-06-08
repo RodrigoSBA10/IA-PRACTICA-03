@@ -2,8 +2,7 @@
 import heapq
 
 # Importa las constantes del archivo config.py
-from config import *
-from puntuaciones import *
+from configuracion.config import *
 
 
 # Clase del agente basado en el algoritmo A*
@@ -33,6 +32,8 @@ class AgenteAStar:
         # Camino recorrido por el agente
         self.camino = [[0, 0]]
 
+        self.camino_final = []
+
         # Posición del oro si llega a detectarlo
         self.objetivo_oro = None
 
@@ -54,6 +55,10 @@ class AgenteAStar:
         # Si encuentra oro, guarda esa posición como objetivo
         if perc['oro']:
             self.objetivo_oro = (r, c)
+            self.camino_final = self.buscar_camino_astar(
+                (0 , 0),
+                (r, c)
+            )
 
         # Si no hay brisa ni hedor, las casillas cercanas se consideran seguras
         if not perc['brisa'] and not perc['hedor']:
@@ -187,6 +192,7 @@ class AgenteAStar:
 
         # Si encontró un camino seguro válido
         if mejor_camino:
+            # self.camino_final = mejor_camino
             return mejor_camino[1]
 
         # Si no encontró camino seguro, intenta riesgo controlado
@@ -239,7 +245,7 @@ class AgenteAStar:
 
             # Salto de línea al terminar la filacle
             print()
-    
+    # Método para mostrar el mundo desde la perspectiva del agente en formato de matriz
     def mostrar_mundo_matriz(self):
         matriz = []
 
@@ -255,6 +261,9 @@ class AgenteAStar:
 
                 elif pos in self.peligros:
                     fila.append("P")
+
+                elif self.camino_final and pos in self.camino_final:
+                    fila.append("*")
 
                 elif pos in self.seguras:
                     fila.append("S")

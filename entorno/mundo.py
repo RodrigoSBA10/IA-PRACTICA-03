@@ -2,7 +2,7 @@
 import random
 
 # Importa todas las constantes definidas en config.py
-from config import *
+from configuracion.config import *
 
 
 # Clase que representa el mundo del Wumpus
@@ -307,7 +307,7 @@ class WumpusWorld:
 
         # Si no hay posiciones válidas, no agrega nada
         return None
-
+    # Método para obtener una representación visual del mundo
     def obtener_matriz_visual(self, pos_agente=None):
         matriz = []
         for r in reversed(range(self.size)):
@@ -325,4 +325,5 @@ class WumpusWorld:
                 fila.append(char)
             matriz.append(fila)
         return matriz
+
     
